@@ -1,25 +1,28 @@
 #!/usr/bin/env python
+# -*- coding:utf-8 -*-
 
 import time
 import asyncio
 import websockets
 import websocket as ws
 import logger
+import os
+
+main = r"./fos"
 
 async def hello(websocket):
     name = await websocket.recv()
     if "audio" in f"{name}":
         print(name)
     else:
-        print("binary")
-        file = open(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 'wb')
+        t = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
+        file = open(t, 'wb')
         file.write(name)
         file.close()
-
-    #greeting = f"Hello {name}!"
-
-    #await websocket.send(greeting)
-    #print(f">>> {greeting}")
+        rv=os.popen("./fos %s" % (t))
+        answer = rv.read()
+        print(answer)
+        await websocket.send(answer)
 
 async def main():
     async with websockets.serve(hello, "localhost", 8765, max_size = 10752000):
