@@ -30,23 +30,29 @@ def connect_mqtt():
     client.connect(broker, port)
     return client
 
-async def hello(websocket):
-    name = await websocket.recv()
-    if "audio" in f"{name}":
-        print(name)
-    else:
-        t = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
-        file = open(t, 'wb')
-        file.write(name)
-        file.close()
-        rv=os.popen("./fos %s" % (t))
-        answer = rv.read()
-        print(answer)
-        await websocket.send(answer)
-        client.publish(topic, answer)
+async def gate(websocket):
+    while True:
+        name = await websocket.recv()
+        if name == ' ':
+            print("no data receive");
+            break;
+        if "test" in f"{name}":
+            t = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
+            print(name)
+            file = open(t, 'wb')
+        else:
+            file.write(name)
+
+    print("send result....")
+    rv=os.popen("./fos %s" % (t))
+    answer = rv.read()
+    print(answer)
+    await websocket.send(answer)
+    client.publish(topic, answer)
+    file.close()
 
 async def main():
-    async with websockets.serve(hello, "localhost", 8765, max_size = 10752000):
+    async with websockets.serve(gate, "localhost", 8765, max_size = 10752000):
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":
