@@ -34,7 +34,7 @@ async def gate(websocket):
     while True:
         name = await websocket.recv()
         if name == ' ':
-            print("no data receive");
+            print("receive end flag");
             break;
         if "test" in f"{name}":
             t = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
