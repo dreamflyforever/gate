@@ -4,16 +4,18 @@ import time
 import asyncio
 import websockets
 import websocket as ws
-import logger
+import logging
 import os
 from paho.mqtt import client as mqtt_client
 import random
 
+logging.basicConfig(filename='gate.log', level=logging.DEBUG)
 main = r"./fos"
 
 broker = '127.0.0.1'
 port = 1883
 topic = "mqtt"
+keepalive = 60
 
 # generate client ID with pub prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
@@ -27,7 +29,7 @@ def connect_mqtt():
 
     client = mqtt_client.Client(client_id)
     client.on_connect = on_connect
-    client.connect(broker, port)
+    client.connect(broker, port, keepalive)
     return client
 
 async def gate(websocket):
@@ -35,8 +37,10 @@ async def gate(websocket):
         name = await websocket.recv()
         if name == ' ':
             print("receive end flag");
+            logging.debug("receive end flag");
             break;
         if "test" in f"{name}":
+            logging.debug(name);
             t = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
             print(name)
             file = open(t, 'wb')
@@ -46,6 +50,7 @@ async def gate(websocket):
     print("send result....")
     rv=os.popen("./fos %s" % (t))
     answer = rv.read()
+    logging.debug(answer);
     print(answer)
     await websocket.send(answer)
     client.publish(topic, answer)
